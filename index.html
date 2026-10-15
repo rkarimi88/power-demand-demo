@@ -1,10 +1,12 @@
-
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="داشبورد تحلیل داده، اعتبارسنجی و پیش‌بینی بار ساعتی برق با Python و یادگیری ماشین">
   <title>سامانه پیش‌بینی و بهینه‌سازی مصرف برق</title>
+
   <style>
     :root {
       --primary: #0f766e;
@@ -13,6 +15,7 @@
       --card: #ffffff;
       --text: #172b3a;
       --muted: #687985;
+      --border: #e2eaed;
     }
 
     * { box-sizing: border-box; }
@@ -55,17 +58,26 @@
 
     main { padding: 24px 0 40px; }
 
-    .section-title { margin: 28px 0 12px; font-size: 19px; }
+    .section-title {
+      margin: 28px 0 12px;
+      font-size: 19px;
+    }
+
+    .section-description {
+      color: var(--muted);
+      font-size: 13px;
+      margin: -5px 0 14px;
+    }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
       gap: 15px;
     }
 
     .card {
       background: var(--card);
-      border: 1px solid #e4ebee;
+      border: 1px solid var(--border);
       border-radius: 15px;
       padding: 20px;
       box-shadow: 0 4px 15px rgba(20,50,60,.04);
@@ -80,25 +92,36 @@
     .chart-card h3 { font-size: 16px; margin: 0 0 4px; }
     .chart-card p { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
 
-    svg {
+    .chart-image {
       display: block;
       width: 100%;
       height: auto;
-      overflow: visible;
+      border-radius: 9px;
     }
 
-    .axis { stroke: #dbe5e8; stroke-width: 1; }
-    .line-main {
-      fill: none; stroke: var(--primary);
-      stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+    .chart-caption {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 8px;
     }
-    .line-secondary {
-      fill: none; stroke: var(--secondary);
-      stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
     }
-    .chart-label { fill: #71818b; font-size: 10px; }
-    .bar { fill: var(--primary); }
-    .bar-light { fill: var(--secondary); }
+
+    th, td {
+      padding: 12px 10px;
+      text-align: right;
+      border-bottom: 1px solid #e8eef0;
+      white-space: nowrap;
+    }
+
+    th { color: var(--muted); font-weight: normal; }
+    .best { color: var(--primary); font-weight: bold; }
 
     .note {
       background: #e5f5f2;
@@ -109,115 +132,223 @@
       margin-top: 18px;
     }
 
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 12px 10px; text-align: right; border-bottom: 1px solid #e8eef0; }
-    th { color: var(--muted); font-weight: normal; }
-    .best { color: var(--primary); font-weight: bold; }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .step {
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+    }
+
+    .step-number {
+      color: var(--primary);
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .step h3 { font-size: 14px; margin: 4px 0; }
+    .step p { font-size: 12px; color: var(--muted); margin: 0; }
 
     footer {
-      text-align: center; color: var(--muted);
-      padding: 20px; font-size: 12px;
+      text-align: center;
+      color: var(--muted);
+      padding: 20px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 25px 0; }
+      .container { padding: 0 13px; }
+      .card { padding: 15px; }
+      .metric-value { font-size: 24px; }
+      th, td { padding: 10px 8px; }
     }
   </style>
 </head>
+
 <body>
   <header>
     <div class="container">
       <span class="tag">پروژه تحلیل داده و یادگیری ماشین</span>
       <h1>سامانه پیش‌بینی و بهینه‌سازی مصرف برق</h1>
-      <p>تحلیل الگوی مصرف، پیش‌بینی بار ساعتی و مقایسه عملکرد مدل‌ها</p>
+      <p>تحلیل الگوی مصرف، اعتبارسنجی داده‌ها و ارزیابی مدل‌های پیش‌بینی بار ساعتی</p>
     </div>
   </header>
 
   <main class="container">
-    <h2 class="section-title">نمای کلی داده‌ها</h2>
+
+    <h2 class="section-title">۱. نمای کلی داده‌ها</h2>
+    <p class="section-description">
+      خلاصه‌ای از مجموعه‌داده ساعتی مورد استفاده در پروژه
+    </p>
+
     <section class="grid">
       <div class="card">
         <div class="metric-label">تعداد رکوردهای ساعتی</div>
         <div class="metric-value">8,760</div>
-        <div class="metric-unit">یک سال داده‌ی نمونه</div>
+        <div class="metric-unit">معادل یک سال داده</div>
       </div>
+
       <div class="card">
-        <div class="metric-label">میانگین مصرف</div>
+        <div class="metric-label">میانگین تقاضای برق</div>
         <div class="metric-value">372.43</div>
-        <div class="metric-unit">مگاوات</div>
+        <div class="metric-unit">مگاوات (MW)</div>
       </div>
+
       <div class="card">
-        <div class="metric-label">بیشینه مصرف</div>
+        <div class="metric-label">بیشینه تقاضای برق</div>
         <div class="metric-value">535.73</div>
-        <div class="metric-unit">مگاوات</div>
+        <div class="metric-unit">مگاوات (MW)</div>
       </div>
+
       <div class="card">
-        <div class="metric-label">مقدار داده‌ی نامعتبر</div>
+        <div class="metric-label">رکورد نامعتبر</div>
         <div class="metric-value">0</div>
-        <div class="metric-unit">پس از اعتبارسنجی داده‌ها</div>
+        <div class="metric-unit">پس از بررسی کیفیت داده</div>
       </div>
     </section>
 
-    <h2 class="section-title">نمودارهای تحلیل مصرف</h2>
+    <h2 class="section-title">۲. تحلیل الگوی مصرف</h2>
+    <p class="section-description">
+      نمودارهای زیر از مجموعه‌داده ساعتی سال ۲۰۲۵ استخراج شده‌اند.
+    </p>
 
     <section class="card chart-card">
-      <h3>۱. روند مصرف برق در طول سال</h3>
-      <p>نمای شماتیک از تغییرات بار در طول سال؛ برای نمایش روند کلی</p>
-      <svg viewBox="0 0 600 220" role="img" aria-label="نمودار شماتیک روند مصرف برق">
-        <line class="axis" x1="45" y1="35" x2="45" y2="175"/>
-        <line class="axis" x1="45" y1="175" x2="570" y2="175"/>
-        <line class="axis" x1="45" y1="80" x2="570" y2="80" stroke-dasharray="4 4"/>
-        <line class="axis" x1="45" y1="125" x2="570" y2="125" stroke-dasharray="4 4"/>
-        <path class="line-main" d="M45 135 L65 128 L85 143 L105 117 L125 125 L145 100 L165 112 L185 78 L205 90 L225 67 L245 85 L265 54 L285 72 L305 46 L325 63 L345 40 L365 58 L385 77 L405 65 L425 94 L445 81 L465 112 L485 101 L505 130 L525 115 L545 145 L570 128"/>
-        <text class="chart-label" x="45" y="198" text-anchor="middle">ابتدای سال</text>
-        <text class="chart-label" x="300" y="198" text-anchor="middle">میانه سال</text>
-        <text class="chart-label" x="570" y="198" text-anchor="middle">پایان سال</text>
-      </svg>
+      <h3>۲.۱ روند میانگین مصرف روزانه در طول سال</h3>
+      <p>
+        تجمیع داده‌های ساعتی به میانگین روزانه برای مشاهده تغییرات تقاضا در طول سال.
+      </p>
+      <img
+        class="chart-image"
+        src="daily_demand_2025.png"
+        alt="نمودار میانگین روزانه تقاضای برق در سال ۲۰۲۵"
+        loading="lazy"
+      >
+      <div class="chart-caption">
+        واحد اندازه‌گیری: مگاوات | بازه داده: ژانویه تا دسامبر ۲۰۲۵
+      </div>
     </section>
 
     <section class="card chart-card">
-      <h3>۲. مقایسه میانگین مصرف در روزهای هفته</h3>
-      <p>نمای شماتیک برای نمایش نوع تحلیل روزهای هفته</p>
-      <svg viewBox="0 0 600 230" role="img" aria-label="نمودار ستونی میانگین مصرف روزهای هفته">
-        <line class="axis" x1="35" y1="180" x2="580" y2="180"/>
-        <line class="axis" x1="35" y1="125" x2="580" y2="125" stroke-dasharray="4 4"/>
-        <line class="axis" x1="35" y1="70" x2="580" y2="70" stroke-dasharray="4 4"/>
-        <rect class="bar" x="58" y="83" width="42" height="97" rx="5"/>
-        <rect class="bar" x="132" y="68" width="42" height="112" rx="5"/>
-        <rect class="bar" x="206" y="91" width="42" height="89" rx="5"/>
-        <rect class="bar" x="280" y="77" width="42" height="103" rx="5"/>
-        <rect class="bar" x="354" y="100" width="42" height="80" rx="5"/>
-        <rect class="bar-light" x="428" y="112" width="42" height="68" rx="5"/>
-        <rect class="bar-light" x="502" y="118" width="42" height="62" rx="5"/>
-        <g class="chart-label" text-anchor="middle">
-          <text x="79" y="201">شنبه</text><text x="153" y="201">یکشنبه</text>
-          <text x="227" y="201">دوشنبه</text><text x="301" y="201">سه‌شنبه</text>
-          <text x="375" y="201">چهارشنبه</text><text x="449" y="201">پنجشنبه</text>
-          <text x="523" y="201">جمعه</text>
-        </g>
-      </svg>
+      <h3>۲.۲ مقایسه میانگین مصرف در روزهای هفته</h3>
+      <p>
+        بررسی تفاوت الگوی تقاضا بین روزهای کاری و تعطیلات آخر هفته ایران.
+      </p>
+      <img
+        class="chart-image"
+        src="weekday_average_demand.png"
+        alt="نمودار مقایسه میانگین تقاضای برق در روزهای هفته"
+        loading="lazy"
+      >
+      <div class="chart-caption">
+        ترتیب روزها بر اساس تقویم ایران: شنبه تا جمعه.
+      </div>
     </section>
 
     <section class="card chart-card">
-      <h3>۳. مقایسه خطای مدل‌های پیش‌بینی</h3>
-      <p>خطای کمتر نشان‌دهنده عملکرد بهتر مدل روی داده‌های آزمون است.</p>
+      <h3>۲.۳ مقایسه میانگین مصرف ماهانه</h3>
+      <p>
+        تحلیل تغییرات میانگین تقاضا بین ماه‌های مختلف برای شناسایی الگوهای فصلی.
+      </p>
+      <img
+        class="chart-image"
+        src="monthly_average_demand.png"
+        alt="نمودار میانگین ماهانه تقاضای برق در سال ۲۰۲۵"
+        loading="lazy"
+      >
+      <div class="chart-caption">
+        مقادیر هر ماه از داده‌های ساعتی همان ماه محاسبه شده‌اند.
+      </div>
+    </section>
+
+    <h2 class="section-title">۳. ارزیابی مدل‌های پیش‌بینی</h2>
+    <p class="section-description">
+      مقایسه مدل‌ها روی بخش آزمون داده‌ها؛ مقدار کمتر خطا نشان‌دهنده عملکرد بهتر است.
+    </p>
+
+    <section class="card chart-card">
+      <h3>مقایسه عملکرد مدل‌ها</h3>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>مدل</th><th>MAE (MW)</th><th>RMSE (MW)</th></tr>
+            <tr>
+              <th>مدل پیش‌بینی</th>
+              <th>MAE (MW)</th>
+              <th>RMSE (MW)</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td>پیش‌بینی با مقدار قبلی</td><td>21.66</td><td>27.55</td></tr>
-            <tr><td>میانگین ساعتی</td><td>18.78</td><td>24.69</td></tr>
-            <tr><td class="best">جنگل تصادفی (Random Forest)</td><td class="best">12.09</td><td class="best">15.23</td></tr>
+            <tr>
+              <td>مقدار قبلی (Persistence)</td>
+              <td>21.66</td>
+              <td>27.55</td>
+            </tr>
+            <tr>
+              <td>میانگین ساعتی (Hourly Average)</td>
+              <td>18.78</td>
+              <td>24.69</td>
+            </tr>
+            <tr>
+              <td class="best">جنگل تصادفی (Random Forest)</td>
+              <td class="best">12.09</td>
+              <td class="best">15.23</td>
+            </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="note">
+        <strong>برداشت از نتایج:</strong>
+        در اجرای ثبت‌شده پروژه، مدل Random Forest کمترین MAE و RMSE را در بین سه روش مقایسه‌شده داشته است.
+        این نتیجه مربوط به همان تقسیم آموزش و آزمون است و به‌تنهایی تضمین‌کننده عملکرد مشابه روی داده‌های واقعی شبکه نیست.
+      </div>
+    </section>
+
+    <h2 class="section-title">۴. مراحل اجرای پروژه</h2>
+
+    <section class="steps">
+      <div class="step">
+        <div class="step-number">مرحله ۱</div>
+        <h3>آماده‌سازی داده</h3>
+        <p>بارگذاری داده‌های ساعتی و بررسی ساختار ستون‌ها و زمان‌ها.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-number">مرحله ۲</div>
+        <h3>اعتبارسنجی کیفیت</h3>
+        <p>بررسی مقادیر گمشده، رکوردهای تکراری و نظم زمانی داده‌ها.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-number">مرحله ۳</div>
+        <h3>تحلیل الگوی مصرف</h3>
+        <p>محاسبه شاخص‌های آماری و تحلیل تغییرات روزانه، هفتگی و ماهانه.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-number">مرحله ۴</div>
+        <h3>مدل‌سازی و ارزیابی</h3>
+        <p>مقایسه روش‌های پایه با Random Forest بر اساس معیارهای خطا.</p>
       </div>
     </section>
 
     <div class="note">
-      <strong>نکته مهم:</strong>
-      این صفحه یک نسخه‌ی نمایشی مستقل است. نمودارهای اول و دوم شماتیک هستند و به داده‌های واقعی متصل نیستند؛ اعداد مقایسه مدل‌ها از اجرای قبلی پروژه ثبت شده‌اند. محاسبات و پیش‌بینی زنده در این نسخه انجام نمی‌شود.
+      <strong>درباره داده‌ها و محدودیت نسخه نمایشی:</strong>
+      داده‌های این پروژه نمونه و شبیه‌سازی‌شده‌اند و داده رسمی شرکت برق نیستند.
+      نمودارهای تحلیل از فایل CSV پروژه ساخته شده‌اند؛ جدول معیارهای مدل نیز نتایج ثبت‌شده از اجرای قبلی پروژه را نشان می‌دهد.
+      این وب‌سایت یک داشبورد ایستا است و مدل را به‌صورت زنده اجرا نمی‌کند.
     </div>
+
   </main>
 
-  <footer>Power Demand Forecasting &amp; Optimization System · Demo</footer>
+  <footer>
+    Power Demand Forecasting &amp; Optimization System · Portfolio Demo
+  </footer>
 </body>
 </html>
+```
