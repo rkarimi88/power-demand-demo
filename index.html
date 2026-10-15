@@ -18,11 +18,19 @@
       --border: #e2eaed;
     }
 
+    @font-face {
+        font-family: "IRANSans";
+        src: url("./IRANSans.ttf") format("truetype");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+    }
+
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: Tahoma, Arial, sans-serif;
+      font-family: "IRANSans", Tahoma, Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.9;
